@@ -1,0 +1,563 @@
+<meta charset="utf-8">
+<title>Healthcare Quality Management Variable Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: instrument panel with three views (Atlas / Model builder / Gap map); index left, canvas centre, ledger right; stacks on phones */
+:root{
+  --bg:#f5f7f8; --panel:#ffffff; --fg:#14232b; --muted:#5b6d76; --line:#d9e1e5;
+  --accent:#0b6e75; --accent-soft:#e1f0f1; --prop:#c06a3a;
+  --pos:#0b8a6f; --neg:#c2413a; --ns:#9aa7ad;
+  --heat0:#eef3f4; --heat1:#0b6e75;
+  --f-body:"Instrument Sans",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --panel:#15222a; --fg:#e4ecef; --muted:#93a6ae; --line:#26363f;
+  --accent:#4cc2c9; --accent-soft:#16343a; --prop:#e59561;
+  --pos:#3fcaa4; --neg:#f0776f; --ns:#6b7c84; --heat0:#1a2a32; --heat1:#4cc2c9; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --panel:#15222a; --fg:#e4ecef; --muted:#93a6ae; --line:#26363f;
+  --accent:#4cc2c9; --accent-soft:#16343a; --prop:#e59561;
+  --pos:#3fcaa4; --neg:#f0776f; --ns:#6b7c84; --heat0:#1a2a32; --heat1:#4cc2c9; color-scheme:dark}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
+*{box-sizing:border-box}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-bottom:10px}
+h1{font:700 1.4rem/1.2 var(--f-body);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.meta{color:var(--muted);font:12px var(--f-mono)}
+.tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px}
+.tabs button,.lang button{font:600 13px var(--f-body);border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--panel)}
+.lang{display:flex;gap:2px;margin-left:auto;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--panel)}
+.lang button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.legend i,h3 i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-2px}
+.mi-iv,.mi-dv,.mi-me,.mi-mo,.mi-cf,.mi-fx{box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.mi-iv{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#cfe3ff 16%,#4f7fb8 55%,#13294a 100%)}
+.mi-dv{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#fff3c4 16%,#d4a62a 55%,#5e4205 100%)}
+.mi-me{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#f0e2ff 16%,#8a5cc4 55%,#2e1650 100%)}
+.mi-mo{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#d8ffe9 16%,#3c9e6e 55%,#0f3d26 100%)}
+.mi-cf{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#ffffff 16%,#a9b3ba 55%,#3c454b 100%)}
+.mi-fx{background:radial-gradient(circle at 34% 30%,#fff 0 7%,#ffe0cc 16%,#c06a3a 55%,#4a1d06 100%)}
+.legend .dash{display:inline-block;width:22px;border-top:2px dashed var(--prop);vertical-align:3px;margin-right:5px}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr) 380px;gap:12px;height:calc(100% - 92px);min-height:560px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.side{padding:12px;gap:8px}
+input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,.row:focus-visible,.vitem:focus-visible,td.c:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.list{overflow:auto;flex:1;margin:0 -12px;padding:0 12px}
+.vitem{display:flex;justify-content:space-between;gap:8px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:13px}
+.vitem:hover{background:var(--accent-soft)}.vitem.on{background:var(--accent);color:var(--panel)}
+.vitem span:last-child{font:12px var(--f-mono);opacity:.7;font-variant-numeric:tabular-nums}
+.cy{flex:1;min-height:420px}
+.maphead{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.maphead h2{font:600 1.1rem var(--f-body);margin:0}
+.chip{font:11px var(--f-mono);padding:2px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);letter-spacing:.02em}
+.maphead label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.maphead input[type=range]{width:90px;padding:0}
+.btn{font:600 12px var(--f-body);border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;padding:5px 10px;cursor:pointer}
+.btn:hover{background:var(--accent-soft)}
+.ledger{overflow:auto;padding:12px;gap:14px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;text-align:center}
+.stats div{border:1px solid var(--line);border-radius:6px;padding:5px 2px}
+.stats b{display:block;font:600 1.05rem var(--f-mono);font-variant-numeric:tabular-nums}
+.stats small{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+h3{font:600 12px var(--f-body);text-transform:uppercase;letter-spacing:.07em;margin:0 0 4px;display:flex;align-items:center;gap:2px}
+.sub{font-size:11.5px;color:var(--muted);margin:-2px 0 4px 6px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:13px}
+.row:hover,.row.on{background:var(--accent-soft)}
+.row .n{font:12px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.g{font:600 10.5px var(--f-mono);padding:0 5px;border-radius:4px;border:1px solid currentColor;margin-left:4px}
+.gA{color:var(--pos)}.gB{color:var(--accent)}.gC{color:var(--muted)}.gD{color:var(--ns)}
+.prop{color:var(--prop)}
+.p{color:var(--pos)}.m{color:var(--neg)}.z{color:var(--ns)}
+.empty{color:var(--muted);font-size:12px;padding:2px 6px}
+.papers{border-top:1px solid var(--line);padding-top:10px}
+.paper{padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.paper a{color:var(--accent);text-decoration:none;font-weight:500}.paper a:hover{text-decoration:underline}
+.paper .pm{font:11px var(--f-mono);color:var(--muted)}
+.note{font-size:11.5px;color:var(--muted);line-height:1.45}
+.modeltxt{font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:6px;padding:10px;background:var(--bg)}
+.gapwrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:12px;height:calc(100% - 92px);min-height:560px}
+.heat{overflow:auto;padding:12px}
+.heat table{border-collapse:separate;border-spacing:3px;font-size:12px}
+.heat th{font-weight:600;color:var(--muted);text-align:left;padding:2px 6px;white-space:nowrap}
+.heat thead th{writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;height:190px;vertical-align:bottom}
+td.c{width:46px;height:34px;text-align:center;font:500 12px var(--f-mono);font-variant-numeric:tabular-nums;border-radius:5px;cursor:pointer}
+td.c.on{outline:2px solid var(--prop);outline-offset:1px}
+@media (max-width:1100px){.app{grid-template-columns:220px minmax(0,1fr);height:auto}.app>.box:not(.ledger){height:min(78vh,640px)}.ledger{grid-column:1/-1;max-height:none}.gapwrap{grid-template-columns:1fr;height:auto}}
+@media (max-width:700px){.app,.gapwrap{display:flex;flex-direction:column;height:auto}.side{max-height:260px}.cy{height:460px;flex:none}.lang{margin-left:0}}
+</style>
+
+<header>
+  <h1 data-i18n="title">Healthcare Quality Management Variable Atlas</h1>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-atlas" data-view="atlas" data-i18n="tabAtlas">Atlas</button>
+    <button role="tab" id="tab-model" data-view="model" data-i18n="tabModel">Model builder</button>
+    <button role="tab" id="tab-gaps" data-view="gaps" data-i18n="tabGaps">Gap map</button>
+  </div>
+  <span class="meta" id="meta">loading…</span>
+  <div class="lang" aria-label="Language"><button id="l-en" data-lang="en" aria-pressed="true">EN</button><button id="l-tr" data-lang="tr" aria-pressed="false">TR</button></div>
+</header>
+<div class="legend">
+  <span><i class="mi-iv"></i><span data-i18n="lgIV">predictor (IV)</span></span><span><i class="mi-dv"></i><span data-i18n="lgDV">outcome (DV)</span></span>
+  <span><i class="mi-me"></i><span data-i18n="lgMe">mediator</span></span><span><i class="mi-mo"></i><span data-i18n="lgMo">moderator</span></span>
+  <span><i class="mi-fx"></i><span data-i18n="lgSel">selected</span></span>
+  <span><i style="background:var(--pos)"></i>+</span><span><i style="background:var(--neg)"></i>−</span>
+  <span><span class="dash"></span><span data-i18n="lgProp">proposed, not yet tested</span></span>
+</div>
+
+<!-- VIEW 1: atlas -->
+<div class="app" id="v-atlas">
+  <aside class="box side">
+    <input id="q" type="search" aria-label="Search variables">
+    <select id="cat" aria-label="Category"></select>
+    <div class="list" id="vlist" role="listbox"></div>
+  </aside>
+  <section class="box">
+    <div class="maphead">
+      <h2 id="focus">—</h2><span class="chip" id="fcat"></span>
+      <label for="mink"><span data-i18n="minStudies">min. studies</span> <input id="mink" type="range" min="1" max="5" value="1"><span id="minkv" class="meta">1</span></label>
+      <label for="cap"><span data-i18n="maxSide">max per side</span> <input id="cap" type="range" min="5" max="30" value="14"><span id="capv" class="meta">14</span></label>
+      <button class="btn" id="toModel" data-i18n="buildModel">Build a model for this outcome →</button>
+    </div>
+    <div id="cy" class="cy"></div>
+  </section>
+  <aside class="box ledger" id="ledger"></aside>
+</div>
+
+<!-- VIEW 2: model builder -->
+<div class="app" id="v-model" hidden>
+  <aside class="box side">
+    <div class="note" data-i18n="pickDV">Pick the outcome (dependent variable) of your study.</div>
+    <input id="q2" type="search" aria-label="Search outcomes">
+    <div class="list" id="dvlist" role="listbox"></div>
+  </aside>
+  <section class="box">
+    <div class="maphead"><h2 id="mfocus">—</h2><span class="chip" id="mcat"></span>
+      <button class="btn" id="copyModel" data-i18n="copy">Copy model text</button><span class="meta" id="copied"></span></div>
+    <div id="cy2" class="cy"></div>
+    <div style="padding:10px 12px;border-top:1px solid var(--line)"><div class="modeltxt" id="modeltxt"></div></div>
+  </section>
+  <aside class="box ledger" id="mledger"></aside>
+</div>
+
+<!-- VIEW 3: gap map -->
+<div class="gapwrap" id="v-gaps" hidden>
+  <section class="box heat"><div class="note" data-i18n="gapIntro" style="margin-bottom:8px"></div><div id="heat"></div></section>
+  <aside class="box ledger" id="gledger"></aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script>
+const I18N = {
+ en: { title: "Healthcare Quality Management Variable Atlas", tabAtlas: "Atlas", tabModel: "Model builder", tabGaps: "Gap map",
+  lgIV: "predictor (IV)", lgDV: "outcome (DV)", lgMe: "mediator", lgMo: "moderator", lgSel: "selected", lgProp: "proposed, not yet tested",
+  search: "Search a variable (e.g. burnout)", searchDV: "Search an outcome (e.g. missed nursing care)", allCats: "All categories",
+  minStudies: "min. studies", maxSide: "max per side", buildModel: "Build a model for this outcome →",
+  pickDV: "Pick the outcome (dependent variable) of your study. The builder lists what is known and proposes paths nobody has tested yet.",
+  copy: "Copy model text", copied: "Copied", copyFail: "Select the text and copy it manually",
+  meta: (a, b, c, d) => `${a} studies · ${b} relationships · ${c} variables · built ${d}`,
+  studies: "studies", asIV: "as IV", asDV: "as DV", mediator: "mediator", moderator: "moderator",
+  predictedBy: "Predicted by", predicts: "Predicts", mediates: "Mediates", moderates: "Moderates", controlled: "Controlled for alongside it",
+  none: "None reported.", notMed: "Not tested as a mediator.", notMod: "Not tested as a moderator.", noCtrl: "No controls stated in the abstracts.",
+  pickRel: "Select a relationship to see the studies behind it. k = number of studies; + / − / ns = direction reported in each abstract.",
+  study: "study", studiesN: "studies", noMatch: q => `No variable matches “${q}”.`,
+  knownPred: "Known predictors", knownPredSub: "Tested directly on this outcome, ranked by evidence grade and number of studies.",
+  usedMed: "Mediators already used", usedMedSub: "Variables tested as mechanisms on paths into this outcome.",
+  usedMod: "Moderators already used", usedModSub: "Boundary conditions tested on paths into this outcome.",
+  candMed: "Untested mediation paths", candMedSub: "X → M and M → outcome have each been tested, but X → M → outcome has never been tested as mediation.",
+  candDist: "Untested distal predictors", candDistSub: "X predicts a known predictor of this outcome, but X → outcome itself has never been tested.",
+  candMod: "Candidate moderators", candModSub: "Used as moderators for outcomes of the same category, never on this outcome.",
+  ctrl: "Usually controlled for", gradeNote: "Grade A: ≥5 studies, ≥75% same direction · B: ≥3, ≥60% · C: 2 studies · D: single study.",
+  modelTitle: "Suggested starting model", modelNone: "Not enough evidence around this outcome to propose a model yet.",
+  modelTxt: (dv, xs, m, w, c) => `Proposed model for <b>${dv}</b>: ${xs} as predictors${m ? `, with <b>${m}</b> as a mediator that has not yet been tested on these paths` : ""}${w ? `, and <b>${w}</b> as a moderator` : ""}.${c ? ` Control for ${c}.` : ""} Solid lines are supported by published studies; dashed lines are the novel contribution to test.`,
+  gapIntro: "Rows are the category of the independent variable, columns the category of the outcome. Each cell counts distinct studies. Pale cells are evidence gaps; select a cell to see what has been tested there.",
+  gapCell: (a, b, n) => `${a} → ${b}: ${n} studies`, gapTop: "Most studied relationships in this cell", gapEmpty: "No study has tested a relationship in this cell. This is an open gap.",
+  gapPick: "Select a cell in the matrix.", ivCat: "IV category", dvCat: "Outcome category", via: "via" },
+ tr: { title: "Healthcare Quality Management Variable Atlas", tabAtlas: "Atlas", tabModel: "Model önerici", tabGaps: "Boşluk haritası",
+  lgIV: "yordayıcı (bağımsız)", lgDV: "sonuç (bağımlı)", lgMe: "aracı", lgMo: "düzenleyici", lgSel: "seçili", lgProp: "önerilen, henüz test edilmemiş",
+  search: "Değişken ara (örn. burnout)", searchDV: "Sonuç değişkeni ara (örn. missed nursing care)", allCats: "Tüm kategoriler",
+  minStudies: "en az çalışma", maxSide: "taraf başına en çok", buildModel: "Bu sonuç için model kur →",
+  pickDV: "Araştırmanızın sonuç (bağımlı) değişkenini seçin. Araç bilinenleri listeler ve henüz kimsenin test etmediği yolları önerir.",
+  copy: "Model metnini kopyala", copied: "Kopyalandı", copyFail: "Metni seçip elle kopyalayın",
+  meta: (a, b, c, d) => `${a} çalışma · ${b} ilişki · ${c} değişken · ${d}`,
+  studies: "çalışma", asIV: "bağımsız", asDV: "bağımlı", mediator: "aracı", moderator: "düzenleyici",
+  predictedBy: "Yordayıcıları", predicts: "Yordadıkları", mediates: "Aracılık ettiği yollar", moderates: "Düzenlediği yollar", controlled: "Birlikte kontrol edilenler",
+  none: "Raporlanmamış.", notMed: "Aracı olarak test edilmemiş.", notMod: "Düzenleyici olarak test edilmemiş.", noCtrl: "Özetlerde kontrol değişkeni belirtilmemiş.",
+  pickRel: "Arkasındaki çalışmaları görmek için bir ilişki seçin. k = çalışma sayısı; + / − / ns = özetlerde raporlanan yön.",
+  study: "çalışma", studiesN: "çalışma", noMatch: q => `“${q}” ile eşleşen değişken yok.`,
+  knownPred: "Bilinen yordayıcılar", knownPredSub: "Bu sonuç üzerinde doğrudan test edilenler; kanıt düzeyi ve çalışma sayısına göre sıralı.",
+  usedMed: "Kullanılmış aracılar", usedMedSub: "Bu sonuca giden yollarda mekanizma olarak test edilen değişkenler.",
+  usedMod: "Kullanılmış düzenleyiciler", usedModSub: "Bu sonuca giden yollarda test edilmiş sınır koşulları.",
+  candMed: "Test edilmemiş aracılık yolları", candMedSub: "X → M ve M → sonuç ayrı ayrı test edilmiş, ama X → M → sonuç aracılık olarak hiç test edilmemiş.",
+  candDist: "Test edilmemiş uzak yordayıcılar", candDistSub: "X, bu sonucun bilinen bir yordayıcısını yordar; ama X → sonuç doğrudan hiç test edilmemiş.",
+  candMod: "Aday düzenleyiciler", candModSub: "Aynı kategorideki sonuçlarda düzenleyici olarak kullanılmış, bu sonuçta hiç kullanılmamış.",
+  ctrl: "Genellikle kontrol edilenler", gradeNote: "A: ≥5 çalışma, ≥%75 aynı yön · B: ≥3, ≥%60 · C: 2 çalışma · D: tek çalışma.",
+  modelTitle: "Önerilen başlangıç modeli", modelNone: "Bu sonuç çevresinde model önermek için henüz yeterli kanıt yok.",
+  modelTxt: (dv, xs, m, w, c) => `<b>${dv}</b> için önerilen model: yordayıcılar ${xs}${m ? `; bu yollarda henüz test edilmemiş aracı <b>${m}</b>` : ""}${w ? `; düzenleyici <b>${w}</b>` : ""}.${c ? ` Kontrol değişkenleri: ${c}.` : ""} Düz çizgiler yayımlanmış çalışmalarla desteklenir; kesikli çizgiler test edilecek özgün katkıdır.`,
+  gapIntro: "Satırlar bağımsız değişkenin, sütunlar sonuç değişkeninin kategorisidir. Her hücre farklı çalışma sayısını gösterir. Soluk hücreler kanıt boşluklarıdır; ne test edildiğini görmek için bir hücre seçin.",
+  gapCell: (a, b, n) => `${a} → ${b}: ${n} çalışma`, gapTop: "Bu hücrede en çok çalışılan ilişkiler", gapEmpty: "Bu hücrede hiçbir çalışma ilişki test etmemiş. Açık bir boşluk.",
+  gapPick: "Matristen bir hücre seçin.", ivCat: "Bağımsız kategori", dvCat: "Sonuç kategorisi", via: "aracılığıyla" } };
+let CAT_TR = { "Health worker factors": "Sağlık çalışanı etmenleri", "Patient factors": "Hasta etmenleri", "Tasks & workload": "Görevler ve iş yükü",
+  "Organization & culture": "Örgüt ve kültür", "Tools & technology": "Araçlar ve teknoloji", "Structure & environment": "Yapı ve çevre",
+  "Care processes & safety behaviours": "Bakım süreçleri ve güvenlik davranışları", "Patient safety outcomes": "Hasta güvenliği sonuçları",
+  "Workforce outcomes": "İşgücü sonuçları", "Interventions": "Müdahaleler", "Other": "Diğer" };
+let CAT_ORDER = ["Structure & environment", "Organization & culture", "Tasks & workload", "Tools & technology", "Health worker factors",
+  "Patient factors", "Interventions", "Care processes & safety behaviours", "Patient safety outcomes", "Workforce outcomes", "Other"];
+let LANG = "en";
+try { LANG = localStorage.getItem("psva-lang") || "en"; } catch (e) {}
+const t = k => I18N[LANG][k] ?? I18N.en[k];
+const catL = c => LANG === "tr" ? (CAT_TR[c] || c) : c;
+
+// 3D metallic spheres
+const METALS = { iv: ["#cfe3ff", "#4f7fb8", "#13294a"], dv: ["#fff3c4", "#d4a62a", "#5e4205"], me: ["#f0e2ff", "#8a5cc4", "#2e1650"],
+                 mo: ["#d8ffe9", "#3c9e6e", "#0f3d26"], focus: ["#ffe0cc", "#c06a3a", "#4a1d06"] };
+const SPHERE = {};
+for (const [k, [l, b, d]] of Object.entries(METALS)) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs>
+<radialGradient id="g" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#fff"/><stop offset=".1" stop-color="${l}"/><stop offset=".48" stop-color="${b}"/><stop offset=".85" stop-color="${d}"/><stop offset="1" stop-color="${d}"/></radialGradient>
+<radialGradient id="r" cx="50%" cy="100%" r="60%"><stop offset="0" stop-color="${l}" stop-opacity=".75"/><stop offset="1" stop-color="${l}" stop-opacity="0"/></radialGradient>
+<radialGradient id="s" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<ellipse cx="52" cy="93" rx="34" ry="6" fill="url(#s)"/><circle cx="50" cy="46" r="43" fill="url(#g)"/>
+<ellipse cx="50" cy="74" rx="30" ry="13" fill="url(#r)"/><ellipse cx="38" cy="24" rx="19" ry="10" fill="url(#h)" transform="rotate(-28 38 24)"/>
+<circle cx="31" cy="22" r="3.5" fill="#fff" opacity=".9"/></svg>`;
+  SPHERE[k] = "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+// preload sphere textures; repaint both maps once they are decoded
+Promise.all(Object.values(SPHERE).map(src => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = src; })))
+  .then(() => { [typeof cy !== "undefined" && cy, typeof cy2 !== "undefined" && cy2].forEach(c => c && c.style().update()); });
+
+let D, cy, cy2, byName = {}, out = {}, inn = {}, asMe = {}, asMo = {}, pair = {}, focus = null, mfocus = null, view = "atlas";
+const $ = s => document.querySelector(s);
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sign = e => e.p > e.n ? "+" : e.n > e.p ? "−" : (e.p || e.n) ? "±" : "ns";
+const grade = e => { const c = e.k ? Math.max(e.p, e.n) / e.k : 0; return e.k >= 5 && c >= .75 ? "A" : e.k >= 3 && c >= .6 ? "B" : e.k >= 2 ? "C" : "D"; };
+const gRank = { A: 0, B: 1, C: 2, D: 3 };
+
+fetch("atlas_data.json").then(r => r.json()).then(d => { D = d; const m = d.meta || {}; if (m.title_en) I18N.en.title = m.title_en; if (m.title_tr) I18N.tr.title = m.title_tr; if (m.cat_order) CAT_ORDER = m.cat_order; if (m.cat_tr) CAT_TR = m.cat_tr; init(); })
+  .catch(() => { $("#meta").textContent = "Data file could not be loaded."; });
+
+function init() {
+  D.nodes.forEach(n => byName[n.id] = n);
+  D.edges.forEach(e => {
+    (out[e.s] ||= []).push(e); (inn[e.t] ||= []).push(e); pair[e.s + "\u0001" + e.t] = e;
+    for (const m in e.me) (asMe[m] ||= []).push(e);
+    for (const m in e.mo) (asMo[m] ||= []).push(e);
+  });
+  cy = cytoscape({ container: $("#cy"), wheelSensitivity: .25, minZoom: .3, maxZoom: 2.5 });
+  cy.on("tap", "node", ev => { const id = ev.target.data("real"); if (id !== focus) go("v", id); });
+  cy.on("tap", "edge", ev => showPapers("#papers", ev.target.data("rids"), ev.target.data("label")));
+  cy2 = cytoscape({ container: $("#cy2"), wheelSensitivity: .25, minZoom: .3, maxZoom: 2.5, userPanningEnabled: true });
+  cy2.on("tap", "edge", ev => showPapers("#mpapers", ev.target.data("rids"), ev.target.data("label")));
+  cy2.on("tap", "node", ev => { const id = ev.target.data("real"); if (id) go("v", id); });
+  document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+    const v = b.dataset.view;
+    if (v === "atlas") go("v", focus); else if (v === "model") go("m", mfocus || defaultDV()); else location.hash = "gaps";
+  });
+  document.querySelectorAll(".lang button").forEach(b => b.onclick = () => setLang(b.dataset.lang));
+  $("#toModel").onclick = () => go("m", (byName[focus]?.DV ? focus : defaultDV()));
+  $("#copyModel").onclick = copyModel;
+  ["q", "cat"].forEach(id => $("#" + id).addEventListener("input", renderList));
+  $("#q2").addEventListener("input", renderDVList);
+  ["mink", "cap"].forEach(id => $("#" + id).addEventListener("input", () => { $("#" + id + "v").textContent = $("#" + id).value; draw(); }));
+  window.addEventListener("hashchange", route);
+  // refit maps whenever their panel changes size (iframe embeds, narrow screens, view switches)
+  if (window.ResizeObserver) [[cy, "#cy"], [cy2, "#cy2"]].forEach(([c, sel]) => {
+    let to; new ResizeObserver(() => { clearTimeout(to); to = setTimeout(() => { c.resize(); if (c.elements().length) c.fit(undefined, 60); }, 80); }).observe($(sel));
+  });
+  const redraw = () => { if (view === "atlas") draw(); if (view === "model" && mfocus) buildModel(); if (view === "gaps") renderGaps(); };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  focus = [...D.nodes].sort((a, b) => b.k - a.k)[0].id;
+  setLang(LANG, true);
+  route();
+}
+function defaultDV() { return [...D.nodes].sort((a, b) => (b.DV || 0) - (a.DV || 0))[0].id; }
+function go(kind, id) { location.hash = kind + "-" + slug(id); }
+function route() {
+  const h = location.hash.slice(1);
+  const find = s => D.nodes.find(n => slug(n.id) === s);
+  let v = "atlas";
+  if (h === "gaps") v = "gaps";
+  else if (h.startsWith("m-")) { v = "model"; const n = find(h.slice(2)); mfocus = n ? n.id : defaultDV(); }
+  else if (h.startsWith("v-")) { const n = find(h.slice(2)); if (n) focus = n.id; }
+  view = v;
+  ["atlas", "model", "gaps"].forEach(x => { $("#v-" + x).hidden = x !== v; $("#tab-" + x).setAttribute("aria-selected", x === v); });
+  if (v === "atlas") { renderList(); select(focus); }
+  if (v === "model") { renderDVList(); buildModel(); }
+  if (v === "gaps") renderGaps();
+}
+function setLang(l, quiet) {
+  LANG = l; try { localStorage.setItem("psva-lang", l); } catch (e) {}
+  document.documentElement.lang = l;
+  document.querySelectorAll("[data-i18n]").forEach(el => { const v = t(el.dataset.i18n); if (typeof v === "string") el.textContent = v; });
+  document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === l));
+  $("#q").placeholder = t("search"); $("#q2").placeholder = t("searchDV");
+  document.title = t("title");
+  $("#meta").textContent = t("meta")(D.meta.n_papers, D.meta.n_edges, D.meta.n_vars, D.meta.built);
+  const cur = $("#cat").value;
+  $("#cat").innerHTML = `<option value="">${esc(t("allCats"))}</option>` + CAT_ORDER.filter(c => D.nodes.some(n => n.c === c)).map(c => `<option value="${esc(c)}">${esc(catL(c))}</option>`).join("");
+  $("#cat").value = cur;
+  if (!quiet) route();
+}
+
+/* ---------- ATLAS ---------- */
+function renderList() {
+  const q = $("#q").value.toLowerCase().trim(), c = $("#cat").value;
+  const rows = D.nodes.filter(n => (!q || n.id.includes(q)) && (!c || n.c === c)).sort((a, b) => b.k - a.k).slice(0, 400);
+  $("#vlist").innerHTML = rows.map(n => `<div class="vitem${n.id === focus ? " on" : ""}" role="option" tabindex="0" data-id="${esc(n.id)}"><span>${esc(n.id)}</span><span>${n.k}</span></div>`).join("")
+    || `<div class="empty">${esc(t("noMatch")(q))}</div>`;
+  $("#vlist").querySelectorAll(".vitem").forEach(el => { el.onclick = () => go("v", el.dataset.id); el.onkeydown = e => { if (e.key === "Enter") go("v", el.dataset.id); }; });
+}
+function select(id) {
+  focus = id; const n = byName[id];
+  $("#focus").textContent = id; $("#fcat").textContent = catL(n.c);
+  $("#toModel").hidden = !n.DV;
+  renderList(); draw(); ledger();
+}
+function colors() {
+  return { fg: tok("--fg"), muted: tok("--muted"), panel: tok("--panel"), line: tok("--line"), pos: tok("--pos"), neg: tok("--neg"), ns: tok("--ns"), prop: tok("--prop") };
+}
+function baseStyle(C) {
+  return [
+    { selector: "node", style: { label: "data(label)", "font-family": "Instrument Sans, system-ui, sans-serif", "font-size": 11, color: C.fg,
+      "text-wrap": "wrap", "text-max-width": 150, width: "mapData(k,1,40,18,44)", height: "mapData(k,1,40,18,44)",
+      "background-opacity": 0, "border-width": 0, "background-fit": "contain", "background-clip": "none",
+      "text-outline-color": C.panel, "text-outline-width": 2, "text-outline-opacity": .85 } },
+    { selector: "node[role='iv']", style: { "background-image": SPHERE.iv, "text-halign": "left", "text-valign": "center", "text-margin-x": -6 } },
+    { selector: "node[role='dv']", style: { "background-image": SPHERE.dv, "text-halign": "right", "text-valign": "center", "text-margin-x": 6 } },
+    { selector: "node[role='me']", style: { "background-image": SPHERE.me, "text-valign": "top", "text-margin-y": -4 } },
+    { selector: "node[role='mo']", style: { "background-image": SPHERE.mo, "text-valign": "bottom", "text-margin-y": 4 } },
+    { selector: "node[role='focus']", style: { "background-image": SPHERE.focus, width: 64, height: 64, "font-size": 14, "font-weight": 700,
+      "text-valign": "bottom", "text-margin-y": 6, "text-max-width": 200 } },
+    { selector: "edge", style: { width: "mapData(k,1,30,1.2,9)", "curve-style": "bezier", "target-arrow-shape": "triangle", "arrow-scale": .8, opacity: .85 } },
+    { selector: "edge[sg='+']", style: { "line-color": C.pos, "target-arrow-color": C.pos } },
+    { selector: "edge[sg='−']", style: { "line-color": C.neg, "target-arrow-color": C.neg } },
+    { selector: "edge[sg='±']", style: { "line-color": C.muted, "target-arrow-color": C.muted } },
+    { selector: "edge[sg='ns']", style: { "line-color": C.ns, "target-arrow-color": C.ns, "line-style": "dashed" } },
+    { selector: "edge[aux]", style: { width: 1.2, "line-style": "dotted", "target-arrow-shape": "none", "line-color": C.line } },
+    { selector: "edge[prop]", style: { width: 2.5, "line-style": "dashed", "line-color": C.prop, "target-arrow-color": C.prop, opacity: 1 } },
+    { selector: "node:active, node:selected", style: { "overlay-opacity": 0 } }];
+}
+function draw() {
+  if (!focus || view !== "atlas") return;
+  const mink = +$("#mink").value, cap = +$("#cap").value;
+  const preds = (inn[focus] || []).filter(e => e.k >= mink).sort((a, b) => b.k - a.k).slice(0, cap);
+  const outs = (out[focus] || []).filter(e => e.k >= mink).sort((a, b) => b.k - a.k).slice(0, cap);
+  const meC = {}, moC = {};
+  [...(inn[focus] || []), ...(out[focus] || [])].forEach(e => {
+    for (const m in e.me) meC[m] = (meC[m] || 0) + e.me[m];
+    for (const m in e.mo) moC[m] = (moC[m] || 0) + e.mo[m];
+  });
+  const top = o => Object.entries(o).filter(([m]) => m !== focus).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const mes = top(meC), mos = top(moC);
+  const H = Math.max(preds.length, outs.length, 4) * 46, W = 620, els = [];
+  const node = (id, role, x, y, k) => els.push({ group: "nodes", data: { id: role + "::" + id, label: id, role, k, real: id }, position: { x, y } });
+  node(focus, "focus", 0, 0, byName[focus].k);
+  const col = (list, role, x, key) => list.forEach((e, i) => {
+    const v = e[key], y = (i - (list.length - 1) / 2) * 46;
+    node(v, role, x, y, e.k);
+    const s = role === "iv" ? role + "::" + v : "focus::" + focus, tg = role === "iv" ? "focus::" + focus : role + "::" + v;
+    els.push({ group: "edges", data: { id: s + ">" + tg, source: s, target: tg, k: e.k, sg: sign(e), rids: e.r, label: `${e.s} → ${e.t}` } });
+  });
+  col(preds, "iv", -W / 2, "s"); col(outs, "dv", W / 2, "t");
+  const row = (list, role, y) => list.forEach(([m, k], i) => node(m, role, (i - (list.length - 1) / 2) * 120, y, k));
+  row(mes, "me", -H / 2 - 70); row(mos, "mo", H / 2 + 70);
+  mes.forEach(([m]) => els.push({ group: "edges", data: { id: "me>" + m, source: "me::" + m, target: "focus::" + focus, aux: "me", rids: [] } }));
+  mos.forEach(([m]) => els.push({ group: "edges", data: { id: "mo>" + m, source: "mo::" + m, target: "focus::" + focus, aux: "mo", rids: [] } }));
+  cy.elements().remove(); cy.add(els); cy.style(baseStyle(colors()));
+  cy.resize(); cy.layout({ name: "preset", fit: true, padding: 60 }).run();
+}
+function relRows(list, key, kind) {
+  if (!list.length) return `<div class="empty">${esc(t("none"))}</div>`;
+  return list.map((e, i) => `<div class="row" tabindex="0" data-kind="${kind}" data-i="${i}">
+    <span>${esc(e[key])}<span class="g g${grade(e)}">${grade(e)}</span></span><span class="n">k=${e.k} <span class="p">+${e.p}</span> <span class="m">−${e.n}</span> <span class="z">ns${e.z}</span></span></div>`).join("");
+}
+function bindRows(root, src, target) {
+  root.querySelectorAll(".row[data-kind]").forEach(el => {
+    const act = () => { root.querySelectorAll(".row.on").forEach(r => r.classList.remove("on")); el.classList.add("on");
+      const e = src[el.dataset.kind][+el.dataset.i]; if (e.go) return go("v", e.go); showPapers(target, e.r, e.label || `${e.s} → ${e.t}`); };
+    el.onclick = act; el.onkeydown = ev => { if (ev.key === "Enter") act(); };
+  });
+}
+function ledger() {
+  const n = byName[focus];
+  const P = (inn[focus] || []).slice().sort((a, b) => b.k - a.k).slice(0, 40), O = (out[focus] || []).slice().sort((a, b) => b.k - a.k).slice(0, 40);
+  const ME = (asMe[focus] || []).slice().sort((a, b) => b.me[focus] - a.me[focus]).slice(0, 25), MO = (asMo[focus] || []).slice().sort((a, b) => b.mo[focus] - a.mo[focus]).slice(0, 25);
+  const cf = Object.entries(D.conf[focus] || {});
+  const stats = [[t("studies"), n.k], [t("asIV"), n.IV], [t("asDV"), n.DV], [t("mediator"), n.me], [t("moderator"), n.mo]];
+  const pathRow = (e, kind, i, w) => `<div class="row" tabindex="0" data-kind="${kind}" data-i="${i}"><span>${esc(e.s)} → ${esc(e.t)}</span><span class="n">k=${w}</span></div>`;
+  $("#ledger").innerHTML = `
+    <div class="stats">${stats.map(([l, v]) => `<div><b>${v ?? 0}</b><small>${esc(l)}</small></div>`).join("")}</div>
+    <div><h3><i class="mi-iv"></i>${esc(t("predictedBy"))} (${(inn[focus] || []).length})</h3>${relRows(P, "s", "P")}</div>
+    <div><h3><i class="mi-dv"></i>${esc(t("predicts"))} (${(out[focus] || []).length})</h3>${relRows(O, "t", "O")}</div>
+    <div><h3><i class="mi-me"></i>${esc(t("mediates"))} (${(asMe[focus] || []).length})</h3>${ME.length ? ME.map((e, i) => pathRow(e, "ME", i, e.me[focus])).join("") : `<div class="empty">${esc(t("notMed"))}</div>`}</div>
+    <div><h3><i class="mi-mo"></i>${esc(t("moderates"))} (${(asMo[focus] || []).length})</h3>${MO.length ? MO.map((e, i) => pathRow(e, "MO", i, e.mo[focus])).join("") : `<div class="empty">${esc(t("notMod"))}</div>`}</div>
+    <div><h3><i class="mi-cf"></i>${esc(t("controlled"))}</h3>${cf.length ? `<div class="note">${cf.map(([c, k]) => `${esc(c)} <span class="meta">(${k})</span>`).join(" · ")}</div>` : `<div class="empty">${esc(t("noCtrl"))}</div>`}</div>
+    <div class="note">${esc(t("gradeNote"))}</div>
+    <div class="papers" id="papers"><div class="note">${esc(t("pickRel"))}</div></div>`;
+  bindRows($("#ledger"), { P, O, ME, MO }, "#papers");
+}
+function showPapers(target, rids, label) {
+  if (!rids || !rids.length) return;
+  const yr = p => +(p[0].match(/\((\d{4})\)/)?.[1] || 0);
+  const items = [...new Set(rids)].map(r => [r, D.papers[r]]).filter(x => x[1]).sort((a, b) => yr(b[1]) - yr(a[1]));
+  $(target).innerHTML = `<h3>${esc(label)} · ${items.length} ${esc(items.length === 1 ? t("study") : t("studiesN"))}</h3>` + items.map(([r, p]) => `
+    <div class="paper">${p[2] ? `<a href="${esc(p[2])}" target="_blank" rel="noopener">${esc(p[0])}</a>` : `<b>${esc(p[0])}</b>`} ${esc(p[1])}
+    <div class="pm">${esc(r)} · ${esc(p[3])} · ${esc(p[4] || "")}/${esc(p[5] || "")} · n=${esc(p[6] ?? "?")} · ${esc(p[7] || "")}</div></div>`).join("");
+  $(target).scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+/* ---------- MODEL BUILDER ---------- */
+function renderDVList() {
+  const q = $("#q2").value.toLowerCase().trim();
+  const rows = D.nodes.filter(n => n.DV > 0 && (!q || n.id.includes(q))).sort((a, b) => b.DV - a.DV).slice(0, 400);
+  $("#dvlist").innerHTML = rows.map(n => `<div class="vitem${n.id === mfocus ? " on" : ""}" role="option" tabindex="0" data-id="${esc(n.id)}"><span>${esc(n.id)}</span><span>${n.DV}</span></div>`).join("")
+    || `<div class="empty">${esc(t("noMatch")(q))}</div>`;
+  $("#dvlist").querySelectorAll(".vitem").forEach(el => { el.onclick = () => go("m", el.dataset.id); el.onkeydown = e => { if (e.key === "Enter") go("m", el.dataset.id); }; });
+}
+function analyse(dv) {
+  const known = (inn[dv] || []).slice().sort((a, b) => gRank[grade(a)] - gRank[grade(b)] || b.k - a.k);
+  const knownSet = new Set(known.map(e => e.s));
+  const medUsed = {}, modUsed = {};
+  known.forEach(e => {
+    for (const m in e.me) (medUsed[m] ||= { k: 0, paths: [], r: [] }), medUsed[m].k += e.me[m], medUsed[m].paths.push(e.s), medUsed[m].r.push(...e.r);
+    for (const m in e.mo) (modUsed[m] ||= { k: 0, paths: [], r: [] }), modUsed[m].k += e.mo[m], modUsed[m].paths.push(e.s), modUsed[m].r.push(...e.r);
+  });
+  // untested mediation: X->M tested, M->dv tested, X->dv tested or not, but M never recorded as mediator of X->dv
+  const candMed = [];
+  known.forEach(eMy => {                      // eMy: M -> dv
+    const M = eMy.s;
+    (inn[M] || []).forEach(eXM => {           // X -> M
+      const X = eXM.s; if (X === dv || X === M) return;
+      const direct = pair[X + "\u0001" + dv];
+      if (direct && direct.me && direct.me[M]) return;
+      candMed.push({ X, M, k1: eXM.k, k2: eMy.k, score: Math.min(eXM.k, eMy.k) + (direct ? .5 : 0), direct: !!direct, r: [...eXM.r, ...eMy.r] });
+    });
+  });
+  candMed.sort((a, b) => b.score - a.score || (b.k1 + b.k2) - (a.k1 + a.k2));
+  // distal predictors: X -> M (known predictor) but X -> dv never tested
+  const dist = {};
+  candMed.filter(c => !c.direct).forEach(c => {
+    const d = (dist[c.X] ||= { X: c.X, via: [], score: 0, r: [] });
+    d.via.push(c.M); d.score += c.score; d.r.push(...c.r);
+  });
+  const candDist = Object.values(dist).sort((a, b) => b.score - a.score);
+  // candidate moderators: used on outcomes of the same category, never on this dv
+  const cat = byName[dv].c, modOther = {};
+  D.edges.forEach(e => {
+    if (e.t === dv || byName[e.t]?.c !== cat) return;
+    for (const m in e.mo) if (!modUsed[m] && m !== dv) (modOther[m] ||= { k: 0, outs: new Set(), r: [] }), modOther[m].k += e.mo[m], modOther[m].outs.add(e.t), modOther[m].r.push(...e.r);
+  });
+  const candMod = Object.entries(modOther).map(([m, o]) => ({ m, k: o.k, outs: [...o.outs], r: o.r })).sort((a, b) => b.k - a.k);
+  const ctrl = Object.entries(D.conf[dv] || {}).slice(0, 6).map(x => x[0]);
+  return { known, medUsed: Object.entries(medUsed).sort((a, b) => b[1].k - a[1].k), modUsed: Object.entries(modUsed).sort((a, b) => b[1].k - a[1].k), candMed, candDist, candMod, ctrl };
+}
+let MODEL = null;
+function buildModel() {
+  if (view !== "model" || !mfocus) return;
+  const dv = mfocus, A = analyse(dv), n = byName[dv];
+  $("#mfocus").textContent = dv; $("#mcat").textContent = catL(n.c);
+  renderDVList();
+  // suggested model: top 3 known predictors with direction; best untested mediator linked to one of them; a moderator
+  const preds = A.known.filter(e => e.p + e.n > 0 && !/^(age|gender|sex|work experience|education level|job position|marital status)$/.test(e.s)).slice(0, 3);
+  const med = A.candMed.find(c => preds.some(p => p.s === c.X)) || A.candMed[0];
+  const mod = A.modUsed[0] ? A.modUsed[0][0] : A.candMod[0]?.m;
+  const C = colors(), els = [], add = (id, role, x, y, k) => { if (!els.some(e => e.data.id === role + "::" + id)) els.push({ group: "nodes", data: { id: role + "::" + id, label: id, role, k, real: id }, position: { x, y } }); };
+  add(dv, "focus", 320, 0, n.k);
+  preds.forEach((e, i) => { add(e.s, "iv", -260, (i - (preds.length - 1) / 2) * 110, e.k);
+    els.push({ group: "edges", data: { id: "p" + i, source: "iv::" + e.s, target: "focus::" + dv, k: e.k, sg: sign(e), rids: e.r, label: `${e.s} → ${dv}` } }); });
+  if (med) {
+    const xin = preds.some(p => p.s === med.X);
+    if (!xin) add(med.X, "iv", -260, (preds.length / 2 + .6) * 110, med.k1);
+    add(med.M, "me", 40, -170, med.k2);
+    const eXM = pair[med.X + "\u0001" + med.M], eMY = pair[med.M + "\u0001" + dv];
+    els.push({ group: "edges", data: { id: "xm", source: "iv::" + med.X, target: "me::" + med.M, k: eXM.k, sg: sign(eXM), rids: eXM.r, label: `${med.X} → ${med.M}` } });
+    els.push({ group: "edges", data: { id: "my", source: "me::" + med.M, target: "focus::" + dv, k: eMY.k, sg: sign(eMY), rids: eMY.r, label: `${med.M} → ${dv}` } });
+    els.push({ group: "edges", data: { id: "ind", source: "iv::" + med.X, target: "focus::" + dv, prop: 1, rids: [], label: `${med.X} → ${med.M} → ${dv}` } });
+  }
+  if (mod) { add(mod, "mo", 40, 190, 6); els.push({ group: "edges", data: { id: "mod", source: "mo::" + mod, target: "focus::" + dv, aux: "mo", rids: [] } }); }
+  cy2.elements().remove(); cy2.add(els); cy2.style(baseStyle(C).concat([{ selector: "node[role!='focus']", style: { width: 40, height: 40, "font-size": 13 } }, { selector: "edge[id='ind']", style: { "curve-style": "unbundled-bezier", "control-point-distances": [-120], "control-point-weights": [.5] } }]));
+  cy2.resize(); cy2.layout({ name: "preset", fit: true, padding: 70 }).run();
+  MODEL = { dv, preds: preds.map(e => e.s), med: med ? med.M : null, medX: med ? med.X : null, mod, ctrl: A.ctrl };
+  $("#modeltxt").innerHTML = preds.length || med ? `<b>${esc(t("modelTitle"))}.</b> ` + t("modelTxt")(esc(dv), (MODEL.preds.length ? MODEL.preds : [MODEL.medX]).map(x => `<b>${esc(x)}</b>`).join(", "), med ? esc(med.M) : "", mod ? esc(mod) : "", A.ctrl.map(esc).join(", "))
+    : esc(t("modelNone"));
+  // ledger
+  const K = A.known.slice(0, 30);
+  const MU = A.medUsed.slice(0, 15).map(([m, o]) => ({ label: m, r: o.r, k: o.k, paths: o.paths }));
+  const MO = A.modUsed.slice(0, 15).map(([m, o]) => ({ label: m, r: o.r, k: o.k, paths: o.paths }));
+  const CM = A.candMed.slice(0, 15).map(c => ({ ...c, label: `${c.X} → ${c.M} → ${dv}` }));
+  const CD = A.candDist.slice(0, 12).map(c => ({ ...c, label: `${c.X} → ${dv}` }));
+  const CO = A.candMod.slice(0, 10).map(c => ({ ...c, label: c.m }));
+  const simple = (list, kind, fn) => list.length ? list.map((x, i) => `<div class="row" tabindex="0" data-kind="${kind}" data-i="${i}">${fn(x)}</div>`).join("") : `<div class="empty">${esc(t("none"))}</div>`;
+  $("#mledger").innerHTML = `
+    <div><h3><i class="mi-iv"></i>${esc(t("knownPred"))} (${A.known.length})</h3><div class="sub">${esc(t("knownPredSub"))}</div>${relRows(K, "s", "K")}</div>
+    <div><h3><i class="mi-me"></i>${esc(t("usedMed"))} (${A.medUsed.length})</h3><div class="sub">${esc(t("usedMedSub"))}</div>
+      ${simple(MU, "MU", x => `<span>${esc(x.label)} <span class="meta">← ${esc(x.paths.slice(0, 2).join(", "))}</span></span><span class="n">k=${x.k}</span>`)}</div>
+    <div><h3><i class="mi-mo"></i>${esc(t("usedMod"))} (${A.modUsed.length})</h3><div class="sub">${esc(t("usedModSub"))}</div>
+      ${simple(MO, "MO", x => `<span>${esc(x.label)}</span><span class="n">k=${x.k}</span>`)}</div>
+    <div><h3 class="prop"><i class="mi-me"></i>${esc(t("candMed"))} (${A.candMed.length})</h3><div class="sub">${esc(t("candMedSub"))}</div>
+      ${simple(CM, "CM", x => `<span>${esc(x.X)} → <b>${esc(x.M)}</b> → ${esc(dv)}</span><span class="n">${x.k1}·${x.k2}</span>`)}</div>
+    <div><h3 class="prop"><i class="mi-iv"></i>${esc(t("candDist"))} (${A.candDist.length})</h3><div class="sub">${esc(t("candDistSub"))}</div>
+      ${simple(CD, "CD", x => `<span><b>${esc(x.X)}</b> <span class="meta">${esc(t("via"))} ${esc(x.via.slice(0, 2).join(", "))}</span></span><span class="n">${x.via.length}</span>`)}</div>
+    <div><h3 class="prop"><i class="mi-mo"></i>${esc(t("candMod"))} (${A.candMod.length})</h3><div class="sub">${esc(t("candModSub"))}</div>
+      ${simple(CO, "CO", x => `<span><b>${esc(x.m)}</b> <span class="meta">${esc(x.outs.slice(0, 2).join(", "))}</span></span><span class="n">k=${x.k}</span>`)}</div>
+    <div><h3><i class="mi-cf"></i>${esc(t("ctrl"))}</h3>${A.ctrl.length ? `<div class="note">${A.ctrl.map(esc).join(" · ")}</div>` : `<div class="empty">${esc(t("noCtrl"))}</div>`}</div>
+    <div class="note">${esc(t("gradeNote"))}</div>
+    <div class="papers" id="mpapers"><div class="note">${esc(t("pickRel"))}</div></div>`;
+  bindRows($("#mledger"), { K, MU, MO, CM, CD, CO }, "#mpapers");
+}
+async function copyModel() {
+  if (!MODEL) return;
+  const txt = $("#modeltxt").innerText;
+  try { await navigator.clipboard.writeText(txt); $("#copied").textContent = t("copied"); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($("#modeltxt")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("#copied").textContent = t("copyFail"); }
+  setTimeout(() => $("#copied").textContent = "", 2500);
+}
+
+/* ---------- GAP MAP ---------- */
+let GAP = null, gsel = null;
+function gapData() {
+  if (GAP) return GAP;
+  const cells = {};
+  D.edges.forEach(e => {
+    const a = byName[e.s]?.c, b = byName[e.t]?.c; if (!a || !b) return;
+    const c = (cells[a + "|" + b] ||= { rids: new Set(), edges: [] });
+    e.r.forEach(r => c.rids.add(r)); c.edges.push(e);
+  });
+  return GAP = cells;
+}
+function renderGaps() {
+  if (view !== "gaps") return;
+  const cells = gapData(), cats = CAT_ORDER.filter(c => c !== "Other");
+  const max = Math.max(...Object.values(cells).map(c => c.rids.size));
+  const h0 = tok("--heat0"), h1 = tok("--heat1"), fg = tok("--fg"), panel = tok("--panel");
+  const mix = v => `color-mix(in srgb, ${h1} ${Math.round(Math.sqrt(v / max) * 100)}%, ${h0})`;
+  let html = `<table><thead><tr><th style="writing-mode:horizontal-tb;transform:none;height:auto">${esc(t("ivCat"))} ↓ / ${esc(t("dvCat"))} →</th>${cats.map(c => `<th>${esc(catL(c))}</th>`).join("")}</tr></thead><tbody>`;
+  cats.forEach(a => {
+    html += `<tr><th>${esc(catL(a))}</th>` + cats.map(b => {
+      const c = cells[a + "|" + b], v = c ? c.rids.size : 0, dark = v / max > .35;
+      return `<td class="c${gsel === a + "|" + b ? " on" : ""}" tabindex="0" data-k="${esc(a + "|" + b)}" style="background:${mix(v)};color:${dark ? panel : fg}">${v || "·"}</td>`;
+    }).join("") + `</tr>`;
+  });
+  $("#heat").innerHTML = html + `</tbody></table>`;
+  $("#heat").querySelectorAll("td.c").forEach(td => { const act = () => { gsel = td.dataset.k; renderGaps(); }; td.onclick = act; td.onkeydown = e => { if (e.key === "Enter") act(); }; });
+  gapLedger();
+}
+function gapLedger() {
+  if (!gsel) { $("#gledger").innerHTML = `<div class="note">${esc(t("gapPick"))}</div><div class="note">${esc(t("gradeNote"))}</div>`; return; }
+  const [a, b] = gsel.split("|"), c = GAP[gsel];
+  if (!c) { $("#gledger").innerHTML = `<h3>${esc(t("gapCell")(catL(a), catL(b), 0))}</h3><div class="note">${esc(t("gapEmpty"))}</div>`; return; }
+  const E = c.edges.slice().sort((x, y) => y.k - x.k).slice(0, 40);
+  $("#gledger").innerHTML = `<h3>${esc(t("gapCell")(catL(a), catL(b), c.rids.size))}</h3><div class="sub">${esc(t("gapTop"))}</div>
+    ${E.map((e, i) => `<div class="row" tabindex="0" data-kind="G" data-i="${i}"><span>${esc(e.s)} → ${esc(e.t)}<span class="g g${grade(e)}">${grade(e)}</span></span><span class="n">k=${e.k}</span></div>`).join("")}
+    <div class="papers" id="gpapers"><div class="note">${esc(t("pickRel"))}</div></div>`;
+  bindRows($("#gledger"), { G: E }, "#gpapers");
+}
+</script>
